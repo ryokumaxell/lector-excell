@@ -1,188 +1,162 @@
-# Lector Avanzado de Archivos XLSX/CSV con IA
+# Lector de Archivos Excel/CSV con Análisis de IA
 
-## 📋 Descripción
-Aplicación web avanzada para analizar archivos XLSX y CSV utilizando inteligencia artificial. Identifica automáticamente nombres, fechas y horas, y proporciona insights mediante APIs de IA como Z.AI, Google Gemini y DeepSeek.
+Un proyecto avanzado para leer archivos XLSX y CSV que identifica automáticamente nombres, fechas y horas en columnas y filas, con integración de múltiples APIs de inteligencia artificial para análisis avanzado.
 
-## 🚀 Características
-- Carga de archivos XLSX y CSV con arrastrar y soltar
-- Identificación automática de nombres, fechas y horas
-- Análisis de datos con múltiples APIs de IA
-- Interfaz responsive con pestañas organizadas
-- Persistencia de datos entre navegación
-- Configuración centralizada de APIs
+## Características
 
-## 🛠️ Tecnologías Utilizadas
-- **Frontend**: Next.js 15, React 19, TypeScript
+### 📁 Procesamiento de Archivos
+- **Soporte para XLSX y CSV**: Carga y procesamiento de archivos Excel y CSV
+- **Drag & Drop**: Interfaz intuitiva para arrastrar y soltar archivos
+- **Identificación Automática**: Detección inteligente de nombres, fechas y horas
+- **Vista Previa**: Visualización de datos antes del procesamiento
+
+### 📊 Visualización de Datos
+- **Tablas Organizadas**: Muestra datos en formato tabular claro
+- **Columnas Identificadas**: Separación automática de nombres, fechas y horas
+- **Navegación Fácil**: Scroll y paginación para grandes conjuntos de datos
+- **Exportación**: Posibilidad de exportar datos procesados
+
+### 🤖 Integración con IA
+- **Múltiples APIs**: Soporte para Z.AI, Google Gemini y DeepSeek
+- **Análisis Avanzado**: Procesamiento inteligente de datos
+- **Configuración Flexible**: Interfaz para gestionar APIs y claves
+- **Procesamiento por Lotes**: Análisis de múltiples filas/columnas
+
+### 🎨 Interfaz de Usuario
+- **Diseño Moderno**: Construido con Tailwind CSS y shadcn/ui
+- **Responsive**: Funciona en desktop y móviles
+- **Pestañas Organizadas**: Navegación intuitiva entre secciones
+- **Gestión de Estado**: Persistencia de datos entre sesiones
+
+## Tecnologías Utilizadas
+
+- **Frontend**: Next.js 15, TypeScript, React
 - **Estilos**: Tailwind CSS, shadcn/ui
-- **Estado**: Zustand
-- **Procesamiento**: XLSX, PapaParse
-- **IA**: Z.AI SDK, integración con múltiples APIs
+- **Procesamiento de Archivos**: XLSX.js, PapaParse
+- **Gestión de Estado**: Zustand
+- **IA**: Z.AI SDK, Google Gemini API, DeepSeek API
+- **Base de Datos**: Prisma ORM con SQLite
 
-## 📦 Instalación
+## Instalación
 
-### Prerrequisitos
+### Requisitos Previos
 - Node.js 18+ 
 - npm o yarn
 
-### Pasos de instalación
+### Pasos de Instalación
 
 1. **Clonar el repositorio**
-   ```bash
-   git clone <URL_DEL_REPOSITORIO>
-   cd nombre-del-proyecto
-   ```
+```bash
+git clone https://github.com/ryokumaxell/lector-excell.git
+cd lector-excell
+```
 
 2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-3. **Configurar variables de entorno (opcional)**
-   ```bash
-   cp .env.example .env.local
-   ```
-   Edita el archivo `.env.local` con tus claves de API si es necesario.
+3. **Configurar variables de entorno**
+```bash
+cp .env.example .env.local
+```
 
-4. **Ejecutar la aplicación**
-   ```bash
-   npm run dev
-   ```
+4. **Configurar APIs de IA**
+Edita el archivo `.env.local` con tus claves de API:
+```env
+ZAI_API_KEY=tu_clave_zai
+GEMINI_API_KEY=tu_clave_gemini
+DEEPSEEK_API_KEY=tu_clave_deepseek
+```
 
-5. **Abrir en el navegador**
-   ```
-   http://localhost:3000
-   ```
+5. **Iniciar la base de datos**
+```bash
+npm run db:push
+```
 
-## 📁 Estructura del Proyecto
+6. **Iniciar el servidor de desarrollo**
+```bash
+npm run dev
+```
+
+## Uso
+
+### 1. Cargar Archivos
+- Arrastra y suelta archivos XLSX o CSV en la zona designada
+- O haz clic para seleccionar archivos manualmente
+- El sistema procesará automáticamente el archivo
+
+### 2. Visualizar Datos
+- En la pestaña "Datos Procesados" verás los datos organizados
+- Las columnas se identifican automáticamente como:
+  - Nombres
+  - Fechas
+  - Horas
+  - Otros datos
+
+### 3. Configurar IA
+- Ve a la pestaña "Configuración IA"
+- Añade tus claves de API para los servicios que deseas usar
+- Selecciona qué API usar para el análisis
+
+### 4. Analizar con IA
+- Una vez configuradas las APIs, puedes enviar datos para análisis
+- El sistema procesará la información y mostrará resultados
+
+## Estructura del Proyecto
 
 ```
 src/
 ├── app/
-│   ├── api/
-│   │   ├── analyze/route.ts    # API endpoint para análisis de IA
-│   │   └── health/route.ts     # Health check
-│   ├── layout.tsx              # Layout principal
-│   ├── page.tsx                # Página principal
-│   └── globals.css             # Estilos globales
+│   ├── page.tsx              # Página principal
+│   └── layout.tsx            # Layout de la aplicación
 ├── components/
-│   ├── ui/                     # Componentes shadcn/ui
-│   ├── api-config.tsx          # Configuración de APIs
-│   ├── data-table.tsx          # Tabla de datos
-│   └── file-uploader.tsx       # Cargador de archivos
+│   ├── ui/                   # Componentes shadcn/ui
+│   ├── file-uploader.tsx     # Componente de carga de archivos
+│   ├── data-table.tsx        # Componente de tabla de datos
+│   └── api-config.tsx        # Componente de configuración de APIs
 ├── store/
-│   └── app-store.ts            # Zustand store
-└── hooks/
-    └── use-toast.ts            # Hook para notificaciones
+│   └── app-store.ts          # Store global Zustand
+├── lib/
+│   ├── db.ts                 # Configuración de base de datos
+│   └── utils.ts              # Utilidades varias
+└── types/
+    └── index.ts              # Definiciones de TypeScript
 ```
 
-## 🔧 Configuración de APIs
-
-La aplicación soporta múltiples proveedores de IA:
+## APIs de IA Soportadas
 
 ### Z.AI
-1. Ve a la pestaña "Configuración IA"
-2. Selecciona "Z.AI"
-3. Ingresa tu API key de Z.AI
-4. Selecciona el modelo (GLM-4.5, GLM-4-32B, etc.)
-5. Prueba la conexión
+- Análisis de texto avanzado
+- Procesamiento de lenguaje natural
+- Generación de insights
 
 ### Google Gemini
-1. Ve a la pestaña "Configuración IA"
-2. Selecciona "Google Gemini"
-3. Ingresa tu API key de Gemini
-4. Selecciona el modelo deseado
-5. Prueba la conexión
+- Análisis de datos estructurados
+- Reconocimiento de patrones
+- Clasificación automática
 
 ### DeepSeek
-1. Ve a la pestaña "Configuración IA"
-2. Selecciona "DeepSeek"
-3. Ingresa tu API key de DeepSeek
-4. Selecciona el modelo deseado
-5. Prueba la conexión
+- Procesamiento de grandes volúmenes de datos
+- Análisis predictivo
+- Extracción de entidades
 
-## 📖 Uso de la Aplicación
+## Contribuir
 
-### 1. Cargar Archivos
-- Arrastra y suelta un archivo XLSX o CSV en el área designada
-- O haz clic para seleccionar un archivo manualmente
-- El sistema procesará automáticamente el archivo
+1. Fork del repositorio
+2. Crear una rama (`git checkout -b feature/nueva-funcionalidad`)
+3. Hacer commit de los cambios (`git commit -am 'Añadir nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crear un Pull Request
 
-### 2. Ver Datos Procesados
-- Navega a la pestaña "Datos Procesados"
-- Visualiza los nombres, fechas y horas identificados
-- Revisa los datos crudos del archivo original
+## Licencia
 
-### 3. Análisis con IA
-- Después de cargar un archivo, usa el botón "Analizar con IA"
-- Selecciona el proveedor de IA que deseas usar
-- Espera el análisis y revisa los insights generados
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
-### 4. Configurar APIs
-- Ve a la pestaña "Configuración IA"
-- Configura tus claves de API para diferentes proveedores
-- Prueba las conexiones y guarda la configuración
+## Autor
 
-## 🔄 Flujo de Trabajo
+Creado por ryokumaxell
 
-1. **Cargar archivo** → Procesamiento automático
-2. **Revisar datos identificados** → Ver nombres, fechas, horas
-3. **Analizar con IA** → Obtener insights avanzados
-4. **Configurar APIs** → Personalizar proveedores de IA
+## Soporte
 
-## 🐛 Solución de Problemas
-
-### Problemas Comunes
-
-**El archivo no se procesa**
-- Verifica que el formato sea XLSX, XLS o CSV
-- Asegúrate de que el archivo no esté corrupto
-- Revisa la consola del navegador para errores
-
-**El análisis de IA falla**
-- Verifica tu conexión a internet
-- Confirma que tu API key sea válida
-- Asegúrate de tener créditos en el servicio de IA
-
-**Los datos no persisten entre pestañas**
-- La aplicación usa Zustand para gestión de estado
-- Los datos deberían mantenerse automáticamente
-- Recarga la página si persisten los problemas
-
-## 📝 Notas de Desarrollo
-
-### Arquitectura
-- **Gestión de estado**: Zustand para estado global
-- **Componentes**: React con TypeScript
-- **Estilos**: Tailwind CSS con componentes shadcn/ui
-- **APIs**: Endpoints en Next.js API routes
-
-### Variables de Entorno
-```env
-# Opcional: Configuración por defecto para APIs
-NEXT_PUBLIC_DEFAULT_AI_PROVIDER=zai
-NEXT_PUBLIC_ZAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-```
-
-## 🤝 Contribuir
-
-1. Haz fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/amazing-feature`)
-3. Commit tus cambios (`git commit -m 'Add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing-feature`)
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - mira el archivo [LICENSE](LICENSE) para detalles.
-
-## 🙏 Agradecimientos
-
-- [Next.js](https://nextjs.org/) - Framework React
-- [shadcn/ui](https://ui.shadcn.com/) - Componentes UI
-- [Zustand](https://zustand.docs.pmnd.rs/) - Gestión de estado
-- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS
-- [Z.AI](https://open.bigmodel.cn/) - API de IA
-
-## 📞 Soporte
-
-Si tienes problemas o preguntas, por favor abre un issue en el repositorio.
+Si tienes problemas o sugerencias, por favor abre un issue en el repositorio.
