@@ -1,141 +1,188 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+# Lector Avanzado de Archivos XLSX/CSV con IA
 
-A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with [Z.ai](https://chat.z.ai)'s AI-powered coding assistance.
+## 📋 Descripción
+Aplicación web avanzada para analizar archivos XLSX y CSV utilizando inteligencia artificial. Identifica automáticamente nombres, fechas y horas, y proporciona insights mediante APIs de IA como Z.AI, Google Gemini y DeepSeek.
 
-## ✨ Technology Stack
+## 🚀 Características
+- Carga de archivos XLSX y CSV con arrastrar y soltar
+- Identificación automática de nombres, fechas y horas
+- Análisis de datos con múltiples APIs de IA
+- Interfaz responsive con pestañas organizadas
+- Persistencia de datos entre navegación
+- Configuración centralizada de APIs
 
-This scaffold provides a robust foundation built with:
+## 🛠️ Tecnologías Utilizadas
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Estilos**: Tailwind CSS, shadcn/ui
+- **Estado**: Zustand
+- **Procesamiento**: XLSX, PapaParse
+- **IA**: Z.AI SDK, integración con múltiples APIs
 
-### 🎯 Core Framework
-- **⚡ Next.js 15** - The React framework for production with App Router
-- **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
-- **🎨 Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
+## 📦 Instalación
 
-### 🧩 UI Components & Styling
-- **🧩 shadcn/ui** - High-quality, accessible components built on Radix UI
-- **🎯 Lucide React** - Beautiful & consistent icon library
-- **🌈 Framer Motion** - Production-ready motion library for React
-- **🎨 Next Themes** - Perfect dark mode in 2 lines of code
+### Prerrequisitos
+- Node.js 18+ 
+- npm o yarn
 
-### 📋 Forms & Validation
-- **🎣 React Hook Form** - Performant forms with easy validation
-- **✅ Zod** - TypeScript-first schema validation
+### Pasos de instalación
 
-### 🔄 State Management & Data Fetching
-- **🐻 Zustand** - Simple, scalable state management
-- **🔄 TanStack Query** - Powerful data synchronization for React
-- **🌐 Axios** - Promise-based HTTP client
+1. **Clonar el repositorio**
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd nombre-del-proyecto
+   ```
 
-### 🗄️ Database & Backend
-- **🗄️ Prisma** - Next-generation Node.js and TypeScript ORM
-- **🔐 NextAuth.js** - Complete open-source authentication solution
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
 
-### 🎨 Advanced UI Features
-- **📊 TanStack Table** - Headless UI for building tables and datagrids
-- **🖱️ DND Kit** - Modern drag and drop toolkit for React
-- **📊 Recharts** - Redefined chart library built with React and D3
-- **🖼️ Sharp** - High performance image processing
+3. **Configurar variables de entorno (opcional)**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Edita el archivo `.env.local` con tus claves de API si es necesario.
 
-### 🌍 Internationalization & Utilities
-- **🌍 Next Intl** - Internationalization library for Next.js
-- **📅 Date-fns** - Modern JavaScript date utility library
-- **🪝 ReactUse** - Collection of essential React hooks for modern development
+4. **Ejecutar la aplicación**
+   ```bash
+   npm run dev
+   ```
 
-## 🎯 Why This Scaffold?
+5. **Abrir en el navegador**
+   ```
+   http://localhost:3000
+   ```
 
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
-
-## 🚀 Quick Start
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
-
-## 🤖 Powered by Z.ai
-
-This scaffold is optimized for use with [Z.ai](https://chat.z.ai) - your AI assistant for:
-
-- **💻 Code Generation** - Generate components, pages, and features instantly
-- **🎨 UI Development** - Create beautiful interfaces with AI assistance  
-- **🔧 Bug Fixing** - Identify and resolve issues with intelligent suggestions
-- **📝 Documentation** - Auto-generate comprehensive documentation
-- **🚀 Optimization** - Performance improvements and best practices
-
-Ready to build something amazing? Start chatting with Z.ai at [chat.z.ai](https://chat.z.ai) and experience the future of AI-powered development!
-
-## 📁 Project Structure
+## 📁 Estructura del Proyecto
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+├── app/
+│   ├── api/
+│   │   ├── analyze/route.ts    # API endpoint para análisis de IA
+│   │   └── health/route.ts     # Health check
+│   ├── layout.tsx              # Layout principal
+│   ├── page.tsx                # Página principal
+│   └── globals.css             # Estilos globales
+├── components/
+│   ├── ui/                     # Componentes shadcn/ui
+│   ├── api-config.tsx          # Configuración de APIs
+│   ├── data-table.tsx          # Tabla de datos
+│   └── file-uploader.tsx       # Cargador de archivos
+├── store/
+│   └── app-store.ts            # Zustand store
+└── hooks/
+    └── use-toast.ts            # Hook para notificaciones
 ```
 
-## 🎨 Available Features & Components
+## 🔧 Configuración de APIs
 
-This scaffold includes a comprehensive set of modern web development tools:
+La aplicación soporta múltiples proveedores de IA:
 
-### 🧩 UI Components (shadcn/ui)
-- **Layout**: Card, Separator, Aspect Ratio, Resizable Panels
-- **Forms**: Input, Textarea, Select, Checkbox, Radio Group, Switch
-- **Feedback**: Alert, Toast (Sonner), Progress, Skeleton
-- **Navigation**: Breadcrumb, Menubar, Navigation Menu, Pagination
-- **Overlay**: Dialog, Sheet, Popover, Tooltip, Hover Card
-- **Data Display**: Badge, Avatar, Calendar
+### Z.AI
+1. Ve a la pestaña "Configuración IA"
+2. Selecciona "Z.AI"
+3. Ingresa tu API key de Z.AI
+4. Selecciona el modelo (GLM-4.5, GLM-4-32B, etc.)
+5. Prueba la conexión
 
-### 📊 Advanced Data Features
-- **Tables**: Powerful data tables with sorting, filtering, pagination (TanStack Table)
-- **Charts**: Beautiful visualizations with Recharts
-- **Forms**: Type-safe forms with React Hook Form + Zod validation
+### Google Gemini
+1. Ve a la pestaña "Configuración IA"
+2. Selecciona "Google Gemini"
+3. Ingresa tu API key de Gemini
+4. Selecciona el modelo deseado
+5. Prueba la conexión
 
-### 🎨 Interactive Features
-- **Animations**: Smooth micro-interactions with Framer Motion
-- **Drag & Drop**: Modern drag-and-drop functionality with DND Kit
-- **Theme Switching**: Built-in dark/light mode support
+### DeepSeek
+1. Ve a la pestaña "Configuración IA"
+2. Selecciona "DeepSeek"
+3. Ingresa tu API key de DeepSeek
+4. Selecciona el modelo deseado
+5. Prueba la conexión
 
-### 🔐 Backend Integration
-- **Authentication**: Ready-to-use auth flows with NextAuth.js
-- **Database**: Type-safe database operations with Prisma
-- **API Client**: HTTP requests with Axios + TanStack Query
-- **State Management**: Simple and scalable with Zustand
+## 📖 Uso de la Aplicación
 
-### 🌍 Production Features
-- **Internationalization**: Multi-language support with Next Intl
-- **Image Optimization**: Automatic image processing with Sharp
-- **Type Safety**: End-to-end TypeScript with Zod validation
-- **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
+### 1. Cargar Archivos
+- Arrastra y suelta un archivo XLSX o CSV en el área designada
+- O haz clic para seleccionar un archivo manualmente
+- El sistema procesará automáticamente el archivo
 
-## 🤝 Get Started with Z.ai
+### 2. Ver Datos Procesados
+- Navega a la pestaña "Datos Procesados"
+- Visualiza los nombres, fechas y horas identificados
+- Revisa los datos crudos del archivo original
 
-1. **Clone this scaffold** to jumpstart your project
-2. **Visit [chat.z.ai](https://chat.z.ai)** to access your AI coding assistant
-3. **Start building** with intelligent code generation and assistance
-4. **Deploy with confidence** using the production-ready setup
+### 3. Análisis con IA
+- Después de cargar un archivo, usa el botón "Analizar con IA"
+- Selecciona el proveedor de IA que deseas usar
+- Espera el análisis y revisa los insights generados
 
----
+### 4. Configurar APIs
+- Ve a la pestaña "Configuración IA"
+- Configura tus claves de API para diferentes proveedores
+- Prueba las conexiones y guarda la configuración
 
-Built with ❤️ for the developer community. Supercharged by [Z.ai](https://chat.z.ai) 🚀
+## 🔄 Flujo de Trabajo
+
+1. **Cargar archivo** → Procesamiento automático
+2. **Revisar datos identificados** → Ver nombres, fechas, horas
+3. **Analizar con IA** → Obtener insights avanzados
+4. **Configurar APIs** → Personalizar proveedores de IA
+
+## 🐛 Solución de Problemas
+
+### Problemas Comunes
+
+**El archivo no se procesa**
+- Verifica que el formato sea XLSX, XLS o CSV
+- Asegúrate de que el archivo no esté corrupto
+- Revisa la consola del navegador para errores
+
+**El análisis de IA falla**
+- Verifica tu conexión a internet
+- Confirma que tu API key sea válida
+- Asegúrate de tener créditos en el servicio de IA
+
+**Los datos no persisten entre pestañas**
+- La aplicación usa Zustand para gestión de estado
+- Los datos deberían mantenerse automáticamente
+- Recarga la página si persisten los problemas
+
+## 📝 Notas de Desarrollo
+
+### Arquitectura
+- **Gestión de estado**: Zustand para estado global
+- **Componentes**: React con TypeScript
+- **Estilos**: Tailwind CSS con componentes shadcn/ui
+- **APIs**: Endpoints en Next.js API routes
+
+### Variables de Entorno
+```env
+# Opcional: Configuración por defecto para APIs
+NEXT_PUBLIC_DEFAULT_AI_PROVIDER=zai
+NEXT_PUBLIC_ZAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+```
+
+## 🤝 Contribuir
+
+1. Haz fork del proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/amazing-feature`)
+3. Commit tus cambios (`git commit -m 'Add amazing feature'`)
+4. Push a la rama (`git push origin feature/amazing-feature`)
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT - mira el archivo [LICENSE](LICENSE) para detalles.
+
+## 🙏 Agradecimientos
+
+- [Next.js](https://nextjs.org/) - Framework React
+- [shadcn/ui](https://ui.shadcn.com/) - Componentes UI
+- [Zustand](https://zustand.docs.pmnd.rs/) - Gestión de estado
+- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS
+- [Z.AI](https://open.bigmodel.cn/) - API de IA
+
+## 📞 Soporte
+
+Si tienes problemas o preguntas, por favor abre un issue en el repositorio.
