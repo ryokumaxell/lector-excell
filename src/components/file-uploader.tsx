@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useCallback } from "react"
 import { useDropzone } from "react-dropzone"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Upload, FileText, CheckCircle, AlertCircle, Brain, Sparkles } from "lucide-react"
 import * as XLSX from "xlsx"
 import Papa from "papaparse"
+import { useAppStore } from "@/store/app-store"
 
 interface FileData {
   names: string[]
@@ -25,19 +26,27 @@ interface FileData {
   }
 }
 
-interface FileUploaderProps {
-  onDataProcessed: (data: FileData) => void
-}
-
-export function FileUploader({ onDataProcessed }: FileUploaderProps) {
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [status, setStatus] = useState<"idle" | "processing" | "success" | "error">("idle")
-  const [fileName, setFileName] = useState<string>("")
-  const [error, setError] = useState<string>("")
-  const [selectedProvider, setSelectedProvider] = useState<string>("zai")
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [currentData, setCurrentData] = useState<any[][]>([])
+export function FileUploader() {
+  const {
+    fileData,
+    currentRawData,
+    isProcessing,
+    isAnalyzing,
+    progress,
+    status,
+    fileName,
+    error,
+    selectedProvider,
+    setFileData,
+    setCurrentRawData,
+    setProcessing,
+    setAnalyzing,
+    setProgress,
+    setStatus,
+    setFileName,
+    setError,
+    setSelectedProvider
+  } = useAppStore()
 
   const identifyNames = (data: any[][]): string[] => {
     const names: string[] = []
@@ -90,7 +99,7 @@ export function FileUploader({ onDataProcessed }: FileUploaderProps) {
   }
 
   const processFile = async (file: File) => {
-    setIsProcessing(true)
+    setProcessing(true)
     setProgress(0)
     setStatus("processing")
     setFileName(file.name)
@@ -134,26 +143,26 @@ export function FileUploader({ onDataProcessed }: FileUploaderProps) {
         rawData: data
       }
 
-      setCurrentData(data)
+      setCurrentRawData(data)
       setProgress(100)
       setStatus("success")
-      onDataProcessed(processedData)
+      setFileData(processedData)
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar el archivo")
       setStatus("error")
     } finally {
-      setIsProcessing(false)
+      setProcessing(false)
     }
   }
 
   const analyzeWithAI = async () => {
-    if (currentData.length === 0) {
+    if (currentRawData.length === 0) {
       setError("No hay datos para analizar. Por favor, carga un archivo primero.")
       return
     }
 
-    setIsAnalyzing(true)
+    setAnalyzing(true)
     setError("")
 
     try {
@@ -176,7 +185,7 @@ export function FileUploader({ onDataProcessed }: FileUploaderProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          data: currentData,
+          data: currentRawData,
           provider: selectedProvider,
           apiKey: providerConfig.apiKey,
           model: providerConfig.model,
@@ -192,10 +201,10 @@ export function FileUploader({ onDataProcessed }: FileUploaderProps) {
 
       // Update the processed data with AI analysis
       const enhancedData: FileData = {
-        names: identifyNames(currentData),
-        dates: identifyDates(currentData),
-        times: identifyTimes(currentData),
-        rawData: currentData,
+        names: identifyNames(currentRawData),
+        dates: identifyDates(currentRawData),
+        times: identifyTimes(currentRawData),
+        rawData: currentRawData,
         aiAnalysis: {
           insights: analysisResult.insights || [],
           summary: analysisResult.summary || '',
@@ -203,12 +212,12 @@ export function FileUploader({ onDataProcessed }: FileUploaderProps) {
         }
       }
 
-      onDataProcessed(enhancedData)
+      setFileData(enhancedData)
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error en el análisis de IA")
     } finally {
-      setIsAnalyzing(false)
+      setAnalyzing(false)
     }
   }
 

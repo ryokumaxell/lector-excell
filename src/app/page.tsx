@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileUploader } from "@/components/file-uploader"
 import { DataTable } from "@/components/data-table"
 import { ApiConfig } from "@/components/api-config"
 import { Upload, Database, Settings } from "lucide-react"
+import { useAppStore } from "@/store/app-store"
 
 interface FileData {
   names: string[]
@@ -21,7 +22,12 @@ interface FileData {
 }
 
 export default function Home() {
-  const [fileData, setFileData] = useState<FileData | null>(null)
+  const { fileData, loadConfigFromStorage } = useAppStore()
+
+  useEffect(() => {
+    // Load API config from localStorage on mount
+    loadConfigFromStorage()
+  }, [loadConfigFromStorage])
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -57,7 +63,7 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FileUploader onDataProcessed={setFileData} />
+              <FileUploader />
             </CardContent>
           </Card>
         </TabsContent>
@@ -72,7 +78,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               {fileData ? (
-                <DataTable data={fileData} />
+                <DataTable />
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   No hay datos cargados. Por favor, carga un archivo primero.

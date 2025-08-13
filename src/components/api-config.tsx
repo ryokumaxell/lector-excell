@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Key, CheckCircle, AlertCircle, Zap, Brain, Cpu } from "lucide-react"
+import { useAppStore } from "@/store/app-store"
 
 interface ApiConfig {
   gemini: {
@@ -35,39 +36,20 @@ interface ApiConfig {
 }
 
 export function ApiConfig() {
-  const [config, setConfig] = useState<ApiConfig>({
-    gemini: {
-      enabled: false,
-      apiKey: "",
-      model: "gemini-pro",
-      baseUrl: ""
-    },
-    deepseek: {
-      enabled: false,
-      apiKey: "",
-      model: "deepseek-chat",
-      baseUrl: ""
-    },
-    zai: {
-      enabled: false,
-      apiKey: "",
-      model: "glm-4.5",
-      baseUrl: ""
-    }
-  })
-
+  const { 
+    apiConfig, 
+    updateApiConfig, 
+    setApiConfig, 
+    saveConfigToStorage, 
+    loadConfigFromStorage 
+  } = useAppStore()
+  
   const [testResults, setTestResults] = useState<Record<string, "success" | "error" | "testing" | null>>({})
   const [testMessages, setTestMessages] = useState<Record<string, string>>({})
 
-  const updateConfig = (provider: keyof ApiConfig, field: string, value: any) => {
-    setConfig(prev => ({
-      ...prev,
-      [provider]: {
-        ...prev[provider],
-        [field]: value
-      }
-    }))
-  }
+  useEffect(() => {
+    loadConfigFromStorage()
+  }, [loadConfigFromStorage])
 
   const testApiConnection = async (provider: keyof ApiConfig) => {
     setTestResults(prev => ({ ...prev, [provider]: "testing" }))
@@ -77,7 +59,7 @@ export function ApiConfig() {
       // Simulate API testing - in real implementation, this would make actual API calls
       await new Promise(resolve => setTimeout(resolve, 1500))
       
-      if (config[provider].apiKey) {
+      if (apiConfig[provider].apiKey) {
         setTestResults(prev => ({ ...prev, [provider]: "success" }))
         setTestMessages(prev => ({ ...prev, [provider]: "Conexión exitosa" }))
       } else {
@@ -90,17 +72,13 @@ export function ApiConfig() {
   }
 
   const saveConfig = () => {
-    // Save to localStorage for persistence
-    localStorage.setItem('apiConfig', JSON.stringify(config))
+    saveConfigToStorage()
     alert("Configuración guardada exitosamente")
   }
 
   const loadConfig = () => {
-    const saved = localStorage.getItem('apiConfig')
-    if (saved) {
-      setConfig(JSON.parse(saved))
-      alert("Configuración cargada exitosamente")
-    }
+    loadConfigFromStorage()
+    alert("Configuración cargada exitosamente")
   }
 
   return (
@@ -145,12 +123,12 @@ export function ApiConfig() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="gemini-enabled"
-                  checked={config.gemini.enabled}
-                  onCheckedChange={(checked) => updateConfig('gemini', 'enabled', checked)}
+                  checked={apiConfig.gemini.enabled}
+                  onCheckedChange={(checked) => updateApiConfig('gemini', 'enabled', checked)}
                 />
                 <Label htmlFor="gemini-enabled">Habilitar Gemini API</Label>
-                <Badge variant={config.gemini.enabled ? "default" : "secondary"}>
-                  {config.gemini.enabled ? "Activo" : "Inactivo"}
+                <Badge variant={apiConfig.gemini.enabled ? "default" : "secondary"}>
+                  {apiConfig.gemini.enabled ? "Activo" : "Inactivo"}
                 </Badge>
               </div>
 
@@ -160,14 +138,17 @@ export function ApiConfig() {
                   id="gemini-api-key"
                   type="password"
                   placeholder="Ingresa tu API key de Gemini"
-                  value={config.gemini.apiKey}
-                  onChange={(e) => updateConfig('gemini', 'apiKey', e.target.value)}
+                  value={apiConfig.gemini.apiKey}
+                  onChange={(e) => updateApiConfig('gemini', 'apiKey', e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="gemini-model">Modelo</Label>
-                <Select value={config.gemini.model} onValueChange={(value) => updateConfig('gemini', 'model', value)}>
+                <Select 
+                  value={apiConfig.gemini.model} 
+                  onValueChange={(value) => updateApiConfig('gemini', 'model', value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un modelo" />
                   </SelectTrigger>
@@ -185,14 +166,14 @@ export function ApiConfig() {
                 <Input
                   id="gemini-base-url"
                   placeholder="https://generativelanguage.googleapis.com/v1beta"
-                  value={config.gemini.baseUrl}
-                  onChange={(e) => updateConfig('gemini', 'baseUrl', e.target.value)}
+                  value={apiConfig.gemini.baseUrl || ''}
+                  onChange={(e) => updateApiConfig('gemini', 'baseUrl', e.target.value)}
                 />
               </div>
 
               <Button 
                 onClick={() => testApiConnection('gemini')}
-                disabled={!config.gemini.enabled || !config.gemini.apiKey}
+                disabled={!apiConfig.gemini.enabled || !apiConfig.gemini.apiKey}
                 className="w-full"
               >
                 <Key className="h-4 w-4 mr-2" />
@@ -228,12 +209,12 @@ export function ApiConfig() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="deepseek-enabled"
-                  checked={config.deepseek.enabled}
-                  onCheckedChange={(checked) => updateConfig('deepseek', 'enabled', checked)}
+                  checked={apiConfig.deepseek.enabled}
+                  onCheckedChange={(checked) => updateApiConfig('deepseek', 'enabled', checked)}
                 />
                 <Label htmlFor="deepseek-enabled">Habilitar DeepSeek API</Label>
-                <Badge variant={config.deepseek.enabled ? "default" : "secondary"}>
-                  {config.deepseek.enabled ? "Activo" : "Inactivo"}
+                <Badge variant={apiConfig.deepseek.enabled ? "default" : "secondary"}>
+                  {apiConfig.deepseek.enabled ? "Activo" : "Inactivo"}
                 </Badge>
               </div>
 
@@ -243,14 +224,17 @@ export function ApiConfig() {
                   id="deepseek-api-key"
                   type="password"
                   placeholder="Ingresa tu API key de DeepSeek"
-                  value={config.deepseek.apiKey}
-                  onChange={(e) => updateConfig('deepseek', 'apiKey', e.target.value)}
+                  value={apiConfig.deepseek.apiKey}
+                  onChange={(e) => updateApiConfig('deepseek', 'apiKey', e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="deepseek-model">Modelo</Label>
-                <Select value={config.deepseek.model} onValueChange={(value) => updateConfig('deepseek', 'model', value)}>
+                <Select 
+                  value={apiConfig.deepseek.model} 
+                  onValueChange={(value) => updateApiConfig('deepseek', 'model', value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un modelo" />
                   </SelectTrigger>
@@ -267,14 +251,14 @@ export function ApiConfig() {
                 <Input
                   id="deepseek-base-url"
                   placeholder="https://api.deepseek.com/v1"
-                  value={config.deepseek.baseUrl}
-                  onChange={(e) => updateConfig('deepseek', 'baseUrl', e.target.value)}
+                  value={apiConfig.deepseek.baseUrl || ''}
+                  onChange={(e) => updateApiConfig('deepseek', 'baseUrl', e.target.value)}
                 />
               </div>
 
               <Button 
                 onClick={() => testApiConnection('deepseek')}
-                disabled={!config.deepseek.enabled || !config.deepseek.apiKey}
+                disabled={!apiConfig.deepseek.enabled || !apiConfig.deepseek.apiKey}
                 className="w-full"
               >
                 <Key className="h-4 w-4 mr-2" />
@@ -310,12 +294,12 @@ export function ApiConfig() {
               <div className="flex items-center space-x-2">
                 <Switch
                   id="zai-enabled"
-                  checked={config.zai.enabled}
-                  onCheckedChange={(checked) => updateConfig('zai', 'enabled', checked)}
+                  checked={apiConfig.zai.enabled}
+                  onCheckedChange={(checked) => updateApiConfig('zai', 'enabled', checked)}
                 />
                 <Label htmlFor="zai-enabled">Habilitar Z.AI API</Label>
-                <Badge variant={config.zai.enabled ? "default" : "secondary"}>
-                  {config.zai.enabled ? "Activo" : "Inactivo"}
+                <Badge variant={apiConfig.zai.enabled ? "default" : "secondary"}>
+                  {apiConfig.zai.enabled ? "Activo" : "Inactivo"}
                 </Badge>
               </div>
 
@@ -325,14 +309,17 @@ export function ApiConfig() {
                   id="zai-api-key"
                   type="password"
                   placeholder="Ingresa tu API key de Z.AI"
-                  value={config.zai.apiKey}
-                  onChange={(e) => updateConfig('zai', 'apiKey', e.target.value)}
+                  value={apiConfig.zai.apiKey}
+                  onChange={(e) => updateApiConfig('zai', 'apiKey', e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="zai-model">Modelo</Label>
-                <Select value={config.zai.model} onValueChange={(value) => updateConfig('zai', 'model', value)}>
+                <Select 
+                  value={apiConfig.zai.model} 
+                  onValueChange={(value) => updateApiConfig('zai', 'model', value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un modelo" />
                   </SelectTrigger>
@@ -349,14 +336,14 @@ export function ApiConfig() {
                 <Input
                   id="zai-base-url"
                   placeholder="https://open.bigmodel.cn/api/paas/v4"
-                  value={config.zai.baseUrl}
-                  onChange={(e) => updateConfig('zai', 'baseUrl', e.target.value)}
+                  value={apiConfig.zai.baseUrl || ''}
+                  onChange={(e) => updateApiConfig('zai', 'baseUrl', e.target.value)}
                 />
               </div>
 
               <Button 
                 onClick={() => testApiConnection('zai')}
-                disabled={!config.zai.enabled || !config.zai.apiKey}
+                disabled={!apiConfig.zai.enabled || !apiConfig.zai.apiKey}
                 className="w-full"
               >
                 <Key className="h-4 w-4 mr-2" />
