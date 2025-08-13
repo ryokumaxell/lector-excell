@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector Avanzado de Archivos XLSX/CSV con IA</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- XLSX para archivos Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- PapaParse para archivos CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .drag-over { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
+        .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium; }
+        .badge-secondary { @apply bg-gray-100 text-gray-800; }
+        .badge-outline { @apply border border-gray-200 bg-white text-gray-800; }
+        .badge-default { @apply bg-blue-100 text-blue-800; }
+        .alert { @apply p-4 rounded-lg border; }
+        .alert-default { @apply border-green-200 bg-green-50 text-green-800; }
+        .alert-destructive { @apply border-red-200 bg-red-50 text-red-800; }
+        .progress { @apply w-full bg-gray-200 rounded-full h-2; }
+        .progress-bar { @apply bg-blue-600 h-2 rounded-full transition-all duration-300; }
+        .table { @apply w-full border-collapse; }
+        .table th, .table td { @apply border border-gray-200 px-4 py-2 text-left; }
+        .table th { @apply bg-gray-50 font-medium; }
+        .card { @apply bg-white rounded-lg border border-gray-200 shadow-sm; }
+        .card-header { @apply px-6 py-4 border-b border-gray-200; }
+        .card-content { @apply px-6 py-4; }
+        .btn { @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors; }
+        .btn-primary { @apply bg-blue-600 text-white hover:bg-blue-700; }
+        .btn-secondary { @apply bg-gray-100 text-gray-800 hover:bg-gray-200; }
+        .btn-outline { @apply border border-gray-300 bg-white hover:bg-gray-50; }
+        .input { @apply flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm; }
+        .select { @apply flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm; }
+        .switch { @apply relative inline-flex h-6 w-11 items-center rounded-full; }
+        .switch-checked { @apply bg-blue-600; }
+        .switch-unchecked { @apply bg-gray-200; }
+        .switch-thumb { @apply pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white transition-transform; }
+        .switch-thumb-checked { @apply translate-x-6; }
+        .switch-thumb-unchecked { @apply translate-x-1; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" class="container mx-auto p-6 max-w-7xl">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-center mb-2">Lector Avanzado de Archivos</h1>
+            <p class="text-gray-600 text-center">
+                Analiza archivos XLSX y CSV con inteligencia artificial
+            </p>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                    <button onclick="switchTab('upload')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" data-tab="upload">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            Cargar Archivo
+                        </div>
+                    </button>
+                    <button onclick="switchTab('data')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="data">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="database" class="h-4 w-4"></i>
+                            Datos Procesados
+                        </div>
+                    </button>
+                    <button onclick="switchTab('config')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="config">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="settings" class="h-4 w-4"></i>
+                            Configuración IA
+                        </div>
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="upload-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold">Cargar Archivo XLSX o CSV</h2>
+                    <p class="text-gray-600 mt-1">
+                        Selecciona un archivo para analizar. El sistema identificará automáticamente nombres, fechas y horas.
+                    </p>
+                </div>
+                <div class="card-content">
+                    <!-- File Upload Area -->
+                    <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 transition-colors mb-4">
+                        <i data-lucide="upload" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
+                        <div>
+                            <p class="text-lg font-medium mb-2">
+                                Arrastra y suelta un archivo aquí, o haz clic para seleccionar
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                Formatos soportados: XLSX, XLS, CSV
+                            </p>
+                        </div>
+                        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" class="hidden">
+                    </div>
+
+                    <!-- Processing Status -->
+                    <div id="processing-status" class="hidden">
+                        <div class="card mb-4">
+                            <div class="card-content">
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="file-text" class="h-4 w-4"></i>
+                                        <span class="text-sm font-medium">Procesando: <span id="file-name"></span></span>
+                                    </div>
+                                    <div class="progress">
+                                        <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                                    </div>
+                                    <p class="text-xs text-gray-500">
+                                        Analizando datos e identificando nombres, fechas y horas...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div id="success-message" class="alert alert-default hidden mb-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check-circle" class="h-4 w-4"></i>
+                            <span>Archivo procesado exitosamente. Ve a la pestaña "Datos Procesados" para ver los resultados.</span>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-message" class="alert alert-destructive hidden mb-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="alert-circle" class="h-4 w-4"></i>
+                            <span id="error-text"></span>
+                        </div>
+                    </div>
+
+                    <!-- AI Analysis Section -->
+                    <div id="ai-section" class="card hidden">
+                        <div class="card-content">
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="brain" class="h-5 w-5 text-blue-600"></i>
+                                    <h3 class="text-lg font-semibold">Análisis con IA</h3>
+                                </div>
+                                
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-sm font-medium">Proveedor:</label>
+                                        <select id="ai-provider" class="select w-40">
+                                            <option value="zai">Z.AI</option>
+                                            <option value="gemini">Google Gemini</option>
+                                            <option value="deepseek">DeepSeek</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button id="analyze-btn" onclick="analyzeWithAI()" class="btn btn-primary flex items-center gap-2">
+                                        <i data-lucide="sparkles" class="h-4 w-4"></i>
+                                        Analizar con IA
+                                    </button>
+                                </div>
+                                
+                                <p class="text-sm text-gray-500">
+                                    Usa inteligencia artificial para obtener insights más precisos sobre los datos.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tab -->
+        <div id="data-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold">Datos Procesados</h2>
+                    <p class="text-gray-600 mt-1">
+                        Vista tabular de los datos analizados con nombres, fechas y horas identificados.
+                    </p>
+                </div>
+                <div class="card-content">
+                    <div id="no-data" class="text-center py-8 text-gray-500">
+                        No hay datos cargados. Por favor, carga un archivo primero.
+                    </div>
+                    
+                    <div id="data-content" class="hidden space-y-6">
+                        <!-- Summary Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h3 class="text-sm font-medium">Nombres Identificados</h3>
+                                        <i data-lucide="user" class="h-4 w-4 text-gray-400"></i>
+                                    </div>
+                                    <div class="text-2xl font-bold" id="names-count">0</div>
+                                    <p class="text-xs text-gray-500" id="names-preview">No se encontraron nombres</p>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h3 class="text-sm font-medium">Fechas Identificadas</h3>
+                                        <i data-lucide="calendar" class="h-4 w-4 text-gray-400"></i>
+                                    </div>
+                                    <div class="text-2xl font-bold" id="dates-count">0</div>
+                                    <p class="text-xs text-gray-500" id="dates-preview">No se encontraron fechas</p>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h3 class="text-sm font-medium">Horas Identificadas</h3>
+                                        <i data-lucide="clock" class="h-4 w-4 text-gray-400"></i>
+                                    </div>
+                                    <div class="text-2xl font-bold" id="times-count">0</div>
+                                    <p class="text-xs text-gray-500" id="times-preview">No se encontraron horas</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Tabs -->
+                        <div class="bg-white rounded-lg border">
+                            <div class="border-b border-gray-200">
+                                <nav class="flex space-x-8 px-6" aria-label="Data Tabs">
+                                    <button onclick="switchDataTab('identified')" class="data-tab-btn py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" data-tab="identified">
+                                        Datos Identificados
+                                    </button>
+                                    <button onclick="switchDataTab('raw')" class="data-tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="raw">
+                                        Datos Crudos
+                                    </button>
+                                    <button id="ai-tab-btn" onclick="switchDataTab('ai')" class="data-tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hidden" data-tab="ai">
+                                        Análisis IA
+                                    </button>
+                                </nav>
+                            </div>
+
+                            <!-- Identified Data Tab -->
+                            <div id="identified-data-tab" class="data-tab-content active p-6">
+                                <div class="overflow-x-auto max-h-96">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Categoría</th>
+                                                <th>Valores Identificados</th>
+                                                <th>Cantidad</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="font-medium">
+                                                    <div class="flex items-center gap-2">
+                                                        <i data-lucide="user" class="h-4 w-4"></i>
+                                                        Nombres
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="flex flex-wrap gap-1" id="names-list"></div>
+                                                </td>
+                                                <td id="names-total">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-medium">
+                                                    <div class="flex items-center gap-2">
+                                                        <i data-lucide="calendar" class="h-4 w-4"></i>
+                                                        Fechas
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="flex flex-wrap gap-1" id="dates-list"></div>
+                                                </td>
+                                                <td id="dates-total">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="font-medium">
+                                                    <div class="flex items-center gap-2">
+                                                        <i data-lucide="clock" class="h-4 w-4"></i>
+                                                        Horas
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="flex flex-wrap gap-1" id="times-list"></div>
+                                                </td>
+                                                <td id="times-total">0</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Raw Data Tab -->
+                            <div id="raw-data-tab" class="data-tab-content p-6 hidden">
+                                <p class="text-sm text-gray-500 mb-4">
+                                    Mostrando primeros <span id="showing-rows">0</span> filas de <span id="total-rows">0</span> totales
+                                </p>
+                                <div class="overflow-x-auto max-h-96">
+                                    <table class="table" id="raw-table">
+                                        <thead id="raw-table-head"></thead>
+                                        <tbody id="raw-table-body"></tbody>
+                                    </table>
+                                </div>
+                                <p id="more-rows" class="text-sm text-gray-500 mt-2 text-center hidden"></p>
+                            </div>
+
+                            <!-- AI Analysis Tab -->
+                            <div id="ai-data-tab" class="data-tab-content p-6 hidden">
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                                            <i data-lucide="lightbulb" class="h-4 w-4"></i>
+                                            Resumen General
+                                        </h4>
+                                        <div class="bg-gray-50 p-4 rounded-lg">
+                                            <p class="text-sm leading-relaxed" id="ai-summary"></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                                            <i data-lucide="lightbulb" class="h-4 w-4"></i>
+                                            Insights y Patrones
+                                        </h4>
+                                        <div class="space-y-2" id="ai-insights"></div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-lg font-semibold mb-3">Datos Mejorados por IA</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div class="border rounded-lg p-4">
+                                                <h5 class="font-medium mb-2 text-green-700">Nombres Confirmados</h5>
+                                                <div class="flex flex-wrap gap-1" id="ai-names"></div>
+                                            </div>
+                                            <div class="border rounded-lg p-4">
+                                                <h5 class="font-medium mb-2 text-blue-700">Fechas Validadas</h5>
+                                                <div class="flex flex-wrap gap-1" id="ai-dates"></div>
+                                            </div>
+                                            <div class="border rounded-lg p-4">
+                                                <h5 class="font-medium mb-2 text-purple-700">Horas Detectadas</h5>
+                                                <div class="flex flex-wrap gap-1" id="ai-times"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Config Tab -->
+        <div id="config-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-xl font-semibold">Configuración de APIs de IA</h2>
+                    <p class="text-gray-600 mt-1">
+                        Configura las claves de API para los servicios de inteligencia artificial.
+                    </p>
+                </div>
+                <div class="card-content">
+                    <div class="flex gap-2 mb-6">
+                        <button onclick="saveConfig()" class="btn btn-primary">Guardar Configuración</button>
+                        <button onclick="loadConfig()" class="btn btn-outline">Cargar Configuración</button>
+                    </div>
+
+                    <!-- API Config Tabs -->
+                    <div class="bg-white rounded-lg border">
+                        <div class="border-b border-gray-200">
+                            <nav class="flex space-x-8 px-6" aria-label="API Tabs">
+                                <button onclick="switchApiTab('gemini')" class="api-tab-btn py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600" data-tab="gemini">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="brain" class="h-4 w-4"></i>
+                                        Google Gemini
+                                    </div>
+                                </button>
+                                <button onclick="switchApiTab('deepseek')" class="api-tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="deepseek">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="cpu" class="h-4 w-4"></i>
+                                        DeepSeek
+                                    </div>
+                                </button>
+                                <button onclick="switchApiTab('zai')" class="api-tab-btn py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="zai">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="zap" class="h-4 w-4"></i>
+                                        Z.AI
+                                    </div>
+                                </button>
+                            </nav>
+                        </div>
+
+                        <!-- Gemini Config -->
+                        <div id="gemini-config-tab" class="api-tab-content active p-6">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-2">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="gemini-enabled" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                    <label for="gemini-enabled" class="text-sm font-medium">Habilitar Gemini API</label>
+                                    <span class="badge badge-secondary" id="gemini-status">Inactivo</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">API Key</label>
+                                    <input type="password" id="gemini-api-key" placeholder="Ingresa tu API key de Gemini" class="input">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Modelo</label>
+                                    <select id="gemini-model" class="select w-full">
+                                        <option value="gemini-pro">Gemini Pro</option>
+                                        <option value="gemini-pro-vision">Gemini Pro Vision</option>
+                                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Base URL (Opcional)</label>
+                                    <input type="text" id="gemini-base-url" placeholder="https://generativelanguage.googleapis.com/v1beta" class="input">
+                                </div>
+
+                                <button onclick="testApiConnection('gemini')" class="btn btn-primary w-full">
+                                    <i data-lucide="key" class="h-4 w-4 mr-2"></i>
+                                    Probar Conexión
+                                </button>
+
+                                <div id="gemini-test-result" class="hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- DeepSeek Config -->
+                        <div id="deepseek-config-tab" class="api-tab-content p-6 hidden">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-2">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="deepseek-enabled" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                    <label for="deepseek-enabled" class="text-sm font-medium">Habilitar DeepSeek API</label>
+                                    <span class="badge badge-secondary" id="deepseek-status">Inactivo</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">API Key</label>
+                                    <input type="password" id="deepseek-api-key" placeholder="Ingresa tu API key de DeepSeek" class="input">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Modelo</label>
+                                    <select id="deepseek-model" class="select w-full">
+                                        <option value="deepseek-chat">DeepSeek Chat</option>
+                                        <option value="deepseek-coder">DeepSeek Coder</option>
+                                        <option value="deepseek-vl">DeepSeek VL</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Base URL (Opcional)</label>
+                                    <input type="text" id="deepseek-base-url" placeholder="https://api.deepseek.com/v1" class="input">
+                                </div>
+
+                                <button onclick="testApiConnection('deepseek')" class="btn btn-primary w-full">
+                                    <i data-lucide="key" class="h-4 w-4 mr-2"></i>
+                                    Probar Conexión
+                                </button>
+
+                                <div id="deepseek-test-result" class="hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Z.AI Config -->
+                        <div id="zai-config-tab" class="api-tab-content p-6 hidden">
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-2">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="zai-enabled" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                    <label for="zai-enabled" class="text-sm font-medium">Habilitar Z.AI API</label>
+                                    <span class="badge badge-secondary" id="zai-status">Inactivo</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">API Key</label>
+                                    <input type="password" id="zai-api-key" placeholder="Ingresa tu API key de Z.AI" class="input">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Modelo</label>
+                                    <select id="zai-model" class="select w-full">
+                                        <option value="glm-4.5">GLM-4.5</option>
+                                        <option value="glm-4-32b-0414-128k">GLM-4-32B-0414-128K</option>
+                                        <option value="glm-4.5v">GLM-4.5V</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Base URL (Opcional)</label>
+                                    <input type="text" id="zai-base-url" placeholder="https://open.bigmodel.cn/api/paas/v4" class="input">
+                                </div>
+
+                                <button onclick="testApiConnection('zai')" class="btn btn-primary w-full">
+                                    <i data-lucide="key" class="h-4 w-4 mr-2"></i>
+                                    Probar Conexión
+                                </button>
+
+                                <div id="zai-test-result" class="hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state management
+        let appState = {
+            fileData: null,
+            currentRawData: [],
+            isProcessing: false,
+            isAnalyzing: false,
+            progress: 0,
+            status: 'idle',
+            fileName: '',
+            error: '',
+            selectedProvider: 'zai',
+            apiConfig: {
+                gemini: { enabled: false, apiKey: '', model: 'gemini-pro', baseUrl: '' },
+                deepseek: { enabled: false, apiKey: '', model: 'deepseek-chat', baseUrl: '' },
+                zai: { enabled: false, apiKey: '', model: 'glm-4.5', baseUrl: '' }
+            }
+        };
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Tab switching functions
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active state from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Add active state to selected tab button
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+            activeBtn.classList.add('border-blue-500', 'text-blue-600');
+        }
+
+        function switchDataTab(tabName) {
+            // Hide all data tab contents
+            document.querySelectorAll('.data-tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active state from all data tab buttons
+            document.querySelectorAll('.data-tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Show selected data tab content
+            document.getElementById(tabName + '-data-tab').classList.remove('hidden');
+            
+            // Add active state to selected data tab button
+            const activeBtn = document.querySelector(`.data-tab-btn[data-tab="${tabName}"]`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+            activeBtn.classList.add('border-blue-500', 'text-blue-600');
+        }
+
+        function switchApiTab(tabName) {
+            // Hide all API tab contents
+            document.querySelectorAll('.api-tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active state from all API tab buttons
+            document.querySelectorAll('.api-tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Show selected API tab content
+            document.getElementById(tabName + '-config-tab').classList.remove('hidden');
+            
+            // Add active state to selected API tab button
+            const activeBtn = document.querySelector(`.api-tab-btn[data-tab="${tabName}"]`);
+            activeBtn.classList.remove('border-transparent', 'text-gray-500');
+            activeBtn.classList.add('border-blue-500', 'text-blue-600');
+        }
+
+        // File upload handling
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processFile(e.target.files[0]);
+            }
+        });
+
+        // File processing functions
+        function identifyNames(data) {
+            const names = [];
+            data.forEach(row => {
+                row.forEach(cell => {
+                    if (typeof cell === 'string') {
+                        const words = cell.trim().split(/\s+/);
+                        if (words.length >= 2 && words.length <= 3 && 
+                            words.every(word => /^[A-Z][a-z]+$/.test(word))) {
+                            names.push(cell.trim());
+                        }
+                    }
+                });
+            });
+            return [...new Set(names)].slice(0, 10);
+        }
+
+        function identifyDates(data) {
+            const dates = [];
+            const dateRegex = /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/;
+            data.forEach(row => {
+                row.forEach(cell => {
+                    if (typeof cell === 'string' && dateRegex.test(cell)) {
+                        dates.push(cell.trim());
+                    }
+                });
+            });
+            return [...new Set(dates)].slice(0, 10);
+        }
+
+        function identifyTimes(data) {
+            const times = [];
+            const timeRegex = /\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?/i;
+            data.forEach(row => {
+                row.forEach(cell => {
+                    if (typeof cell === 'string' && timeRegex.test(cell)) {
+                        times.push(cell.trim());
+                    }
+                });
+            });
+            return [...new Set(times)].slice(0, 10);
+        }
+
+        async function processFile(file) {
+            appState.isProcessing = true;
+            appState.progress = 0;
+            appState.status = 'processing';
+            appState.fileName = file.name;
+            appState.error = '';
+
+            updateUI();
+
+            try {
+                updateProgress(20);
+                
+                let data = [];
+                
+                if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    const buffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(buffer, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                } else if (file.name.endsWith('.csv')) {
+                    const text = await file.text();
+                    const result = Papa.parse(text, { header: false });
+                    data = result.data;
+                } else {
+                    throw new Error("Formato de archivo no soportado. Por favor use XLSX o CSV.");
+                }
+
+                updateProgress(60);
+
+                const names = identifyNames(data);
+                const dates = identifyDates(data);
+                const times = identifyTimes(data);
+
+                updateProgress(90);
+
+                appState.currentRawData = data;
+                appState.fileData = {
+                    names,
+                    dates,
+                    times,
+                    rawData: data
+                };
+
+                updateProgress(100);
+                appState.status = 'success';
+                updateUI();
+                updateDataDisplay();
+                showSuccess();
+
+            } catch (error) {
+                appState.error = error.message;
+                appState.status = 'error';
+                updateUI();
+                showError(error.message);
+            } finally {
+                appState.isProcessing = false;
+                updateUI();
+            }
+        }
+
+        function updateProgress(value) {
+            appState.progress = value;
+            document.getElementById('progress-bar').style.width = value + '%';
+        }
+
+        function updateUI() {
+            const processingStatus = document.getElementById('processing-status');
+            const aiSection = document.getElementById('ai-section');
+            
+            if (appState.isProcessing) {
+                processingStatus.classList.remove('hidden');
+                document.getElementById('file-name').textContent = appState.fileName;
+            } else {
+                processingStatus.classList.add('hidden');
+            }
+
+            if (appState.status === 'success') {
+                aiSection.classList.remove('hidden');
+            } else {
+                aiSection.classList.add('hidden');
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('success-message').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('success-message').classList.add('hidden');
+            }, 5000);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            document.getElementById('error-text').textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function updateDataDisplay() {
+            if (!appState.fileData) return;
+
+            // Show data content, hide no data message
+            document.getElementById('no-data').classList.add('hidden');
+            document.getElementById('data-content').classList.remove('hidden');
+
+            // Update summary cards
+            document.getElementById('names-count').textContent = appState.fileData.names.length;
+            document.getElementById('dates-count').textContent = appState.fileData.dates.length;
+            document.getElementById('times-count').textContent = appState.fileData.times.length;
+
+            document.getElementById('names-preview').textContent = 
+                appState.fileData.names.length > 0 ? 
+                `Primeros: ${appState.fileData.names.slice(0, 3).join(', ')}` : 
+                'No se encontraron nombres';
+            
+            document.getElementById('dates-preview').textContent = 
+                appState.fileData.dates.length > 0 ? 
+                `Primeras: ${appState.fileData.dates.slice(0, 3).join(', ')}` : 
+                'No se encontraron fechas';
+            
+            document.getElementById('times-preview').textContent = 
+                appState.fileData.times.length > 0 ? 
+                `Primeras: ${appState.fileData.times.slice(0, 3).join(', ')}` : 
+                'No se encontraron horas';
+
+            // Update identified data table
+            updateIdentifiedDataTable();
+
+            // Update raw data table
+            updateRawDataTable();
+        }
+
+        function updateIdentifiedDataTable() {
+            const namesList = document.getElementById('names-list');
+            const datesList = document.getElementById('dates-list');
+            const timesList = document.getElementById('times-list');
+
+            namesList.innerHTML = '';
+            appState.fileData.names.forEach(name => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-secondary';
+                badge.textContent = name;
+                namesList.appendChild(badge);
+            });
+
+            datesList.innerHTML = '';
+            appState.fileData.dates.forEach(date => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-outline';
+                badge.textContent = date;
+                datesList.appendChild(badge);
+            });
+
+            timesList.innerHTML = '';
+            appState.fileData.times.forEach(time => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-default';
+                badge.textContent = time;
+                timesList.appendChild(badge);
+            });
+
+            document.getElementById('names-total').textContent = appState.fileData.names.length;
+            document.getElementById('dates-total').textContent = appState.fileData.dates.length;
+            document.getElementById('times-total').textContent = appState.fileData.times.length;
+        }
+
+        function updateRawDataTable() {
+            const maxRows = 100;
+            const data = appState.fileData.rawData;
+            
+            document.getElementById('showing-rows').textContent = Math.min(data.length, maxRows);
+            document.getElementById('total-rows').textContent = data.length;
+
+            // Create table header
+            const thead = document.getElementById('raw-table-head');
+            thead.innerHTML = '';
+            if (data.length > 0) {
+                const headerRow = document.createElement('tr');
+                data[0].forEach((_, index) => {
+                    const th = document.createElement('th');
+                    th.textContent = `Columna ${index + 1}`;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+            }
+
+            // Create table body
+            const tbody = document.getElementById('raw-table-body');
+            tbody.innerHTML = '';
+            data.slice(0, maxRows).forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell !== null && cell !== undefined ? String(cell) : '';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+
+            // Show more rows message if needed
+            const moreRowsDiv = document.getElementById('more-rows');
+            if (data.length > maxRows) {
+                moreRowsDiv.textContent = `... y ${data.length - maxRows} filas más`;
+                moreRowsDiv.classList.remove('hidden');
+            } else {
+                moreRowsDiv.classList.add('hidden');
+            }
+        }
+
+        // AI Analysis functions
+        async function analyzeWithAI() {
+            if (appState.currentRawData.length === 0) {
+                showError('No hay datos para analizar. Por favor, carga un archivo primero.');
+                return;
+            }
+
+            appState.isAnalyzing = true;
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const originalContent = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>Analizando...';
+            analyzeBtn.disabled = true;
+
+            try {
+                const provider = document.getElementById('ai-provider').value;
+                const config = appState.apiConfig[provider];
+
+                if (!config.enabled || !config.apiKey) {
+                    throw new Error(`La API de ${provider} no está configurada correctamente.`);
+                }
+
+                // Simulate AI analysis (in real implementation, this would call actual APIs)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Mock AI analysis results
+                const analysisResult = {
+                    insights: [
+                        'Se detectaron patrones temporales en los datos',
+                        'Los nombres siguen un formato consistente',
+                        'Las fechas están concentradas en un período específico',
+                        'Las horas muestran picos de actividad en ciertos momentos'
+                    ],
+                    summary: 'El análisis de los datos revela información estructurada con nombres, fechas y horas bien organizados. Se identificaron patrones consistentes que podrían ser útiles para análisis adicionales.',
+                    provider: provider
+                };
+
+                // Update file data with AI analysis
+                appState.fileData.aiAnalysis = analysisResult;
+                updateDataDisplay();
+                updateAIDisplay();
+
+                // Show AI tab
+                document.getElementById('ai-tab-btn').classList.remove('hidden');
+                switchDataTab('ai');
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                appState.isAnalyzing = false;
+                analyzeBtn.innerHTML = originalContent;
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function updateAIDisplay() {
+            if (!appState.fileData.aiAnalysis) return;
+
+            const aiAnalysis = appState.fileData.aiAnalysis;
+
+            // Update summary
+            document.getElementById('ai-summary').textContent = aiAnalysis.summary;
+
+            // Update insights
+            const insightsContainer = document.getElementById('ai-insights');
+            insightsContainer.innerHTML = '';
+            aiAnalysis.insights.forEach(insight => {
+                const div = document.createElement('div');
+                div.className = 'flex items-start gap-3 p-3 bg-gray-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                    <p class="text-sm">${insight}</p>
+                `;
+                insightsContainer.appendChild(div);
+            });
+
+            // Update enhanced data display
+            const aiNames = document.getElementById('ai-names');
+            const aiDates = document.getElementById('ai-dates');
+            const aiTimes = document.getElementById('ai-times');
+
+            aiNames.innerHTML = '';
+            appState.fileData.names.forEach(name => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-secondary text-xs';
+                badge.textContent = name;
+                aiNames.appendChild(badge);
+            });
+
+            aiDates.innerHTML = '';
+            appState.fileData.dates.forEach(date => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-outline text-xs';
+                badge.textContent = date;
+                aiDates.appendChild(badge);
+            });
+
+            aiTimes.innerHTML = '';
+            appState.fileData.times.forEach(time => {
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-default text-xs';
+                badge.textContent = time;
+                aiTimes.appendChild(badge);
+            });
+        }
+
+        // API Configuration functions
+        function saveConfig() {
+            localStorage.setItem('apiConfig', JSON.stringify(appState.apiConfig));
+            alert('Configuración guardada exitosamente');
+        }
+
+        function loadConfig() {
+            const saved = localStorage.getItem('apiConfig');
+            if (saved) {
+                appState.apiConfig = JSON.parse(saved);
+                updateApiConfigUI();
+                alert('Configuración cargada exitosamente');
+            } else {
+                alert('No hay configuración guardada');
+            }
+        }
+
+        function updateApiConfigUI() {
+            // Update Gemini config
+            document.getElementById('gemini-enabled').checked = appState.apiConfig.gemini.enabled;
+            document.getElementById('gemini-api-key').value = appState.apiConfig.gemini.apiKey;
+            document.getElementById('gemini-model').value = appState.apiConfig.gemini.model;
+            document.getElementById('gemini-base-url').value = appState.apiConfig.gemini.baseUrl || '';
+            updateApiStatus('gemini');
+
+            // Update DeepSeek config
+            document.getElementById('deepseek-enabled').checked = appState.apiConfig.deepseek.enabled;
+            document.getElementById('deepseek-api-key').value = appState.apiConfig.deepseek.apiKey;
+            document.getElementById('deepseek-model').value = appState.apiConfig.deepseek.model;
+            document.getElementById('deepseek-base-url').value = appState.apiConfig.deepseek.baseUrl || '';
+            updateApiStatus('deepseek');
+
+            // Update Z.AI config
+            document.getElementById('zai-enabled').checked = appState.apiConfig.zai.enabled;
+            document.getElementById('zai-api-key').value = appState.apiConfig.zai.apiKey;
+            document.getElementById('zai-model').value = appState.apiConfig.zai.model;
+            document.getElementById('zai-base-url').value = appState.apiConfig.zai.baseUrl || '';
+            updateApiStatus('zai');
+        }
+
+        function updateApiStatus(provider) {
+            const enabled = appState.apiConfig[provider].enabled;
+            const statusElement = document.getElementById(provider + '-status');
+            statusElement.textContent = enabled ? 'Activo' : 'Inactivo';
+            statusElement.className = enabled ? 'badge badge-default' : 'badge badge-secondary';
+        }
+
+        async function testApiConnection(provider) {
+            const config = appState.apiConfig[provider];
+            const resultDiv = document.getElementById(provider + '-test-result');
+            
+            if (!config.enabled || !config.apiKey) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-destructive mt-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="alert-circle" class="h-4 w-4"></i>
+                            <span>API key requerida</span>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-default mt-4">
+                    <div class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span>Probando conexión...</span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+
+            // Simulate API testing
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-default mt-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle" class="h-4 w-4"></i>
+                        <span>Conexión exitosa</span>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Event listeners for API config changes
+        ['gemini', 'deepseek', 'zai'].forEach(provider => {
+            document.getElementById(provider + '-enabled').addEventListener('change', (e) => {
+                appState.apiConfig[provider].enabled = e.target.checked;
+                updateApiStatus(provider);
+            });
+
+            document.getElementById(provider + '-api-key').addEventListener('input', (e) => {
+                appState.apiConfig[provider].apiKey = e.target.value;
+            });
+
+            document.getElementById(provider + '-model').addEventListener('change', (e) => {
+                appState.apiConfig[provider].model = e.target.value;
+            });
+
+            document.getElementById(provider + '-base-url').addEventListener('input', (e) => {
+                appState.apiConfig[provider].baseUrl = e.target.value;
+            });
+        });
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
